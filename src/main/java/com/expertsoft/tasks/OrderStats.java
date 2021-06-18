@@ -103,9 +103,7 @@ class OrderStats {
      * @return java.util.Optional containing the name of the most popular country
      */
     static Optional<String> mostPopularCountry(final Stream<Customer> customers) {
-        return Optional.of(customers.collect(groupingBy(customer -> customer.getAddress().getCountry()))
-                .entrySet().stream()
-                .collect(toMap(e -> e.getKey(), e -> e.getValue().size()))
+        return Optional.of(customers.collect(groupingBy(customer -> customer.getAddress().getCountry(), counting()))
                 .entrySet().stream()
                 .max(Comparator.comparing(Map.Entry::getValue))
                 .map(Map.Entry::getKey)
