@@ -6,8 +6,6 @@ import com.expertsoft.util.AveragingBigDecimalCollector;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.*;
@@ -31,6 +29,7 @@ class OrderStats {
      * @return list, containing orders paid with provided card type
      */
     static List<Order> ordersForCardType(final Stream<Customer> customers, PaymentInfo.CardType cardType) {
+
         return customers.map(Customer::getOrders)
                 .flatMap(Collection::stream)
                 .filter(order -> cardType.equals(order.getPaymentInfo().getCardType()))
@@ -47,6 +46,7 @@ class OrderStats {
      * @return map, where order size values mapped to lists of orders
      */
     static Map<Integer, List<Order>> orderSizes(final Stream<Order> orders) {
+
         return orders.collect(groupingBy(order -> order.getOrderItems().stream()
                 .map(orderItem -> orderItem.getQuantity()).reduce(0, Integer::sum)));
 
@@ -63,8 +63,10 @@ class OrderStats {
      * @return boolean, representing if every order in the stream contains product of specified color
      */
     static Boolean hasColorProduct(final Stream<Order> orders, final Product.Color color) {
+
         return orders.allMatch(order -> order.getOrderItems().stream()
                 .anyMatch(orderItem -> color.equals(orderItem.getProduct().getColor())));
+
     }
 
     /**
@@ -76,10 +78,12 @@ class OrderStats {
      * @return map, where for each customer email there is a long referencing a number of different credit cards this customer uses.
      */
     static Map<String, Long> cardsCountForCustomer(final Stream<Customer> customers) {
+
         return customers.collect(toMap(customer -> customer.getEmail(), customer -> Long.valueOf(customer.getOrders().stream()
                 .map(order -> order.getPaymentInfo().getCardNumber())
                 .distinct()
                 .collect(toList()).size())));
+
     }
 
     /**
@@ -103,11 +107,13 @@ class OrderStats {
      * @return java.util.Optional containing the name of the most popular country
      */
     static Optional<String> mostPopularCountry(final Stream<Customer> customers) {
+
         return Optional.of(customers.collect(groupingBy(customer -> customer.getAddress().getCountry(), counting()))
                 .entrySet().stream()
                 .max(Comparator.comparing(Map.Entry::getValue))
                 .map(Map.Entry::getKey)
         ).flatMap(Function.identity());
+
     }
 
     /**
@@ -130,7 +136,6 @@ class OrderStats {
      * @return average price of the product, ordered with the provided card
      */
     static BigDecimal averageProductPriceForCreditCard(final Stream<Customer> customers, final String cardNumber) {
-        final AveragingBigDecimalCollector collector = new AveragingBigDecimalCollector();
 
         return customers.flatMap(customer -> customer.getOrders().stream())
                 .filter(order -> cardNumber.equals(order.getPaymentInfo().getCardNumber()))
@@ -138,18 +143,5 @@ class OrderStats {
                 .flatMap(orderItem -> Collections.nCopies(orderItem.getQuantity(), orderItem.getProduct().getPrice()).stream())
                 .collect(new AveragingBigDecimalCollector());
 
-
-//        return customers.flatMap(customer -> customer.getOrders().stream())
-//                .filter(order -> cardNumber.equals(order.getPaymentInfo().getCardNumber()))
-//                .flatMap(order -> order.getOrderItems().stream())
-//                .flatMap(orderItem -> {
-//                    List<BigDecimal> prices = new LinkedList<>();
-//
-//                    for (int i = 0; i < orderItem.getQuantity(); i++) {
-//                        prices.add(orderItem.getProduct().getPrice());
-//                    }
-//                    return prices.stream();
-//                })
-//                .collect(new AveragingBigDecimalCollector());
     }
 }
